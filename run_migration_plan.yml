@@ -1,0 +1,143 @@
+---
+- name: Dynamically build the group of VMs to be migrated
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Import the migration plan vars
+      include_vars: "{{ v2v_config_path | default('./v2v_config') }}/migration_plans/{{ v2v_migration_plan }}.yml"
+
+    - name: Add hosts from the migration plan
+      add_host:
+        name: "{{ item }}"
+        group: "v2v_to_be_migrated"
+      with_items:
+        - "{{ v2v_vms_in_plan }}"
+
+
+- name: Run migration for VMs to be migrated
+  hosts: v2v_to_be_migrated
+  gather_facts: no
+  tasks:
+    - name: Import the migration plan vars
+      include_vars: "{{ v2v_config_path | default('./v2v_config') }}/migration_plans/{{ v2v_migration_plan }}.yml"
+
+    - name: Import the infrastructure mapping vars
+      include_vars: "{{ v2v_config_path | default('./v2v_config') }}/infrastructure_mappings/{{ v2v_infrastructure_mapping }}.yml"
+
+    - name: Import the providers credentials vars
+      include_vars: "{{ v2v_config_path | default('./v2v_config') }}/providers.yml"
+
+    - name: Identify destination provider from infrastructure mapping
+      set_fact:
+        v2v_destination_provider_name: "{{ v2v_im_providers | selectattr('source', 'equalto', source_provider_name) | map(attribute='destination') | list | first }}"
+
+    - name: Collecting variables for providers
+      set_fact:
+        v2v_source_provider: "{{ v2v_providers | selectattr('name', 'equalto', source_provider_name) | list | first }}"
+        v2v_destination_provider: "{{ v2v_providers | selectattr('name', 'equalto', v2v_destination_provider_name) | list | first }}"
+
+    - name: Expanding destination provider
+      set_fact:
+        v2v_destination_cluster_name: "{{ v2v_im_clusters | selectattr('source', 'equalto', cluster) | map(attribute='destination') | list | first }}"
+        v2v_destination_storage_name: "{{ v2v_im_storages[0].destination }}"
+        v2v_network_mappings: "{{ v2v_im_networks }}"
+
+    - include_tasks: "ims_engine/select_conversion_host.yml"
+
+    - include_tasks: "{{ v2v_source_provider.type }}/vm_get_initial_state.yml"
+
+    - name: Run pre-migration playbook
+      ansible_playbook:
+        path: "{{ v2v_pre_migration_playbook_path }}"
+        inventory_hosts:
+          - "{{ vm_ipaddr | default(hostvars['inventory_hostname']) }}"
+        extra_vars: "{{ v2v_pre_migration_playbook_extra_vars | default(omit) }}"
+        tags: "{{ v2v_pre_migration_playbook_tags | default(omit) }}"
+        connection_method: "{{ v2v_pre_migration_playbook_connection_method | default(omit) }}"
+        connection_user: "{{ v2v_pre_migration_playbook_connection_user | default(omit) }}"
+        connection_timeout: "{{ v2v_pre_migration_playbook_connection_timeout | default(omit) }}"
+        become: "{{ v2v_pre_migration_playbook_become | default(omit) }}"
+        become_method: "{{ v2v_pre_migration_playbook_become_method | default(omit) }}"
+        become_user: "{{ v2v_pre_migration_playbook_become_user | default(omit) }}"
+        ssh_private_key_file: "{{ v2v_pre_migration_playbook_ssh_private_key_file | default(omit) }}"
+        ssh_common_args: "{{ v2v_pre_migration_playbook_ssh_common_args | default(omit) }}"
+        ssh_extra_args: "{{ v2v_pre_migration_playbook_ssh_extra_args | default(omit) }}"
+        scp_extra_args: "{{ v2v_pre_migration_playbook_scp_extra_args | default(omit) }}"
+        sftp_extra_args: "{{ v2v_pre_migration_playbook_sftp_extra_args | default(omit) }}"
+        module_path: "{{ v2v_pre_migration_playbook_module_path | default(omit) }}"
+        vault_id: "{{ v2v_pre_migration_playbook_vault_id | default(omit) }}"
+        vault_password_file: "{{ v2v_pre_migration_playbook_vault_password_file | default(omit) }}"
+        flush_cache: "{{ v2v_pre_migration_playbook_flush_cache | default(omit) }}"
+        force_handlers: "{{ v2v_pre_migration_playbook_force_handlers | default(omit) }}"
+        start_at_task: "{{ v2v_pre_migration_playbook_start_at_task | default(omit) }}"
+        forks: "{{ v2v_pre_migration_start_at_task | default(omit) }}"
+      when:
+        - v2v_pre_migration_playbook_path is defined
+        - v2v_source_vm_state.instance.hw_power_status == "poweredOn"
+
+    - block:
+      - include_tasks: "{{ v2v_source_provider.type }}/vm_poweroff.yml"
+        when: v2v_source_vm_state.instance.hw_power_status == "poweredOn"
+
+      - include_tasks: "{{ v2v_source_provider.type }}/vm_collapse_snapshots.yml"
+        when: v2v_source_vm_snapshots_num != "0"
+
+      delegate_to: localhost
+      connection: local
+
+    - block:
+
+      - include_tasks: "ims_engine/build_wrapper_input_{{ v2v_source_provider.type }}2{{ v2v_destination_provider.type }}.yml"
+
+      - fail:
+          msg: "KABOOM!"
+        when: true
+
+      - include_tasks: "ims_engine/run_wrapper.yml"
+
+      - include_tasks: "{{ v2v_destination_provider.type }}/vm_check_exists.yml"
+
+      - include_tasks: "{{ v2v_destination_provider.type }}/vm_set_description.yml"
+
+      - include_tasks: "{{ v2v_destination_provider.type }}/vm_poweron.yml"
+        when: v2v_source_vm_state.instance.hw_power_status == "poweredOn"
+
+      - name: Run post-migration playbook
+        ansible_playbook:
+          path: "{{ v2v_post_migration_playbook_path }}"
+          inventory_hosts:
+            - "{{ vm_ipaddr | default(hostvars['inventory_hostname']) }}"
+          extra_vars: "{{ v2v_post_migration_playbook_extra_vars | default(omit) }}"
+          tags: "{{ v2v_post_migration_playbook_tags | default(omit) }}"
+          connection_method: "{{ v2v_post_migration_playbook_connection_method | default(omit) }}"
+          connection_user: "{{ v2v_post_migration_playbook_connection_user | default(omit) }}"
+          connection_timeout: "{{ v2v_post_migration_playbook_connection_timeout | default(omit) }}"
+          become: "{{ v2v_post_migration_playbook_become | default(omit) }}"
+          become_method: "{{ v2v_post_migration_playbook_become_method | default(omit) }}"
+          become_user: "{{ v2v_post_migration_playbook_become_user | default(omit) }}"
+          ssh_private_key_file: "{{ v2v_post_migration_playbook_ssh_private_key_file | default(omit) }}"
+          ssh_common_args: "{{ v2v_post_migration_playbook_ssh_common_args | default(omit) }}"
+          ssh_extra_args: "{{ v2v_post_migration_playbook_ssh_extra_args | default(omit) }}"
+          scp_extra_args: "{{ v2v_post_migration_playbook_scp_extra_args | default(omit) }}"
+          sftp_extra_args: "{{ v2v_post_migration_playbook_sftp_extra_args | default(omit) }}"
+          module_path: "{{ v2v_post_migration_playbook_module_path | default(omit) }}"
+          vault_id: "{{ v2v_post_migration_playbook_vault_id | default(omit) }}"
+          vault_password_file: "{{ v2v_post_migration_playbook_vault_password_file | default(omit) }}"
+          flush_cache: "{{ v2v_post_migration_playbook_flush_cache | default(omit) }}"
+          force_handlers: "{{ v2v_post_migration_playbook_force_handlers | default(omit) }}"
+          start_at_task: "{{ v2v_post_migration_playbook_start_at_task | default(omit) }}"
+          forks: "{{ v2v_post_migration_start_at_task | default(omit) }}"
+        when:
+          - v2v_post_migration_playbook_path is defined
+          - v2v_source_vm_state.instance.hw_power_status == "poweredOn"
+
+      - include_tasks: "{{ v2v_source_provider.type }}/vm_set_migrated.yml"
+
+      rescue:
+
+        - debug:
+            msg: "VM conversion failed."
+
+      delegate_to: "{{ v2v_selected_conversion_host }}"
+

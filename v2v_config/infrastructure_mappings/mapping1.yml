@@ -1,0 +1,14 @@
+---
+v2v_im_providers:
+  - source: "old_vmware"
+    destination: "new_rhv"
+v2v_im_clusters:
+  - source: "old_cluster"
+    destination: "new_cluster"
+v2v_im_networks:
+  - source: "old_network"
+    destination: "new_network"
+v2v_im_storages:
+  - source: "old_datastore"
+    destination: "new_datastore"
+v2v_im_transport_method: "vddk"

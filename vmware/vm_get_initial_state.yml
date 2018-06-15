@@ -1,0 +1,21 @@
+---
+- block:
+  - name: Get virtual machine state
+    vmware_guest:
+      hostname: "{{ v2v_source_provider.hostname }}"
+      username: "{{ v2v_source_provider.username }}"
+      password: "{{ v2v_source_provider.password }}"
+      validate_certs: "{{ v2v_source_provider.validate_certs | default(yes) }}"
+      datacenter: "{{ datacenter }}"
+      folder: "{{ folder | default(omit) }}"
+      name: "{{ vm_name }}"
+    register: v2v_source_vm_state
+
+  - debug:
+      var: v2v_source_vm_state.instance
+
+  delegate_to: localhost
+  connection: local
+
+- set_fact:
+    v2v_source_vm_snapshots_num: "{{ v2v_source_vm_state.instance.snapshots | length }}"

@@ -1,0 +1,19 @@
+---
+all:
+  vars:
+    install_drivers: true
+    destination_provider_insecure_connection: true
+  children:
+    conversion_hosts:
+      hosts:
+        convert1.example.com
+    virtual_machines:
+      hosts:
+        test_migration:
+          source_provider_name: "v2v_vmware"
+          datacenter: "old_datacenter"
+          cluster: "old_cluster"
+          folder: "old_folder"
+          vm_name: "test_migration"
+          vm_ipaddr: "10.0.0.42"
+          v2v_install_drivers: true

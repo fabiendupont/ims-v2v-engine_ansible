@@ -1,0 +1,13 @@
+---
+v2v_providers:
+  - name: "v2v_vmware"
+    type: "vmware"
+    hostname: "vcenter.example.com"
+    username: "administrator@vsphere.local"
+    password: "SecR3t!"
+    validate_certs: false
+  - name: "v2v_rhv"
+    type: "rhv"
+    hostname: "rhvm.example.com"
+    password: "SecR3t!"
+    validate_certs: false

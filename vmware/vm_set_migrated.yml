@@ -1,0 +1,12 @@
+---
+- name: Rename source virtual machine
+  vmware_guest:
+    hostname: "{{ v2v_source_provider.hostname }}"
+    username: "{{ v2v_source_provider.username }}"
+    password: "{{ v2v_source_provider.password }}"
+    validate_certs: "{{ v2v_source_provider.validate_certs | default(yes) }}"
+    uuid: "{{ v2v_source_vm_state.instance.instance_uuid }}"
+    name: "{{ vm_name }}_migrated"
+    state: present
+  delegate_to: localhost
+  connection: local

@@ -1,0 +1,49 @@
+---
+- name: Connect to vCenter and get SSL fingerprint
+  shell: "openssl s_client -connect {{ v2v_source_provider.hostname }}:443 2>/dev/null | openssl x509 -noout -fingerprint -sha1"
+  register: v2v_source_provider_openssl
+
+- name: Set fact for source provider fingerprint
+  set_fact:
+    v2v_source_provider_fingerprint: "{{ v2v_source_provider_openssl.stdout.split('=')[1] }}"
+
+- name: Setting facts about VMware provider
+  set_fact:
+    v2v_vmware_fingerprint: "{{ v2v_source_provider_fingerprint }}"
+    v2v_vmware_uri: "vpx://{{ v2v_source_provider.username | replace('@', '%40') }}@{{ v2v_source_provider.hostname }}/{{ datacenter | replace(' ', '%20') }}/{{ cluster | replace(' ', '%20') }}/{{ v2v_source_vm_state.instance.hw_esxi_host }}?no_verify=1"
+    v2v_vmware_password: "{{ v2v_source_provider.password }}"
+  when:
+    - "v2v_im_transport_method == 'vddk'"
+  no_log: true
+
+- name: Setting facts about RHV provider
+  set_fact:
+    v2v_rhv_url: "https://{{ v2v_destination_provider.hostname }}/ovirt-engine/api"
+    v2v_rhv_cluster: "{{ v2v_destination_cluster_name }}"
+    v2v_rhv_storage: "{{ v2v_destination_storage_name }}"
+    v2v_rhv_password: "{{ v2v_destination_provider.password }}"
+    v2v_rhv_insecure_connection: "{{ not v2v_destination_provider.validate_certs }}"
+  when:
+    - "v2v_destination_provider.type == 'rhv'"
+  no_log: true
+
+- name: Building the virt-v2v-wrapper.py input dictionary
+  set_fact:
+    v2v_virt_v2v_wrapper_input:
+      vm_name: "{{ vm_name }}"
+      transport_method: "{{ v2v_im_transport_method }}"
+      vmware_uri: "{{ v2v_vmware_uri | default(omit) }}"
+      vmware_fingerprint: "{{ v2v_vmware_fingerprint | default(omit) }}"
+      vmware_password: "{{ v2v_vmware_password | default(omit) }}"
+      rhv_url: "{{ v2v_rhv_url | default(omit) }}"
+      rhv_cluster: "{{ v2v_rhv_cluster | default(omit) }}"
+      rhv_storage: "{{ v2v_rhv_storage | default(omit) }}"
+      rhv_password: "{{ v2v_rhv_password | default(omit) }}"
+      insecure_connection: "{{ v2v_rhv_insecure_connection | default(omit) }}"
+      source_disks: "{{ v2v_source_vm_state.instance.hw_files | select('match', '^.*\\.vmdk$') | list }}"
+      network_mappings: "{{ v2v_network_mappings | default([]) }}"
+      install_drivers: "{{ install_drivers | default(true) }}"
+  no_log: true
+
+- debug:
+    var: v2v_virt_v2v_wrapper_input

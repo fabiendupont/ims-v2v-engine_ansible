@@ -1,0 +1,6 @@
+---
+v2v_infrastructure_mapping: "mapping1"
+v2v_vms_in_plan:
+  - test_migration
+v2v_virt_v2v_max_time: 30000
+v2v_virt_v2v_refresh_delay: 15

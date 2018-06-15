@@ -1,0 +1,30 @@
+---
+- block:
+  - name: Login to oVirt engine
+    ovirt_auth:
+      url: "https://{{ v2v_destination_provider.hostname }}/ovirt-engine/api"
+      username: "{{ v2v_destination_provider.username }}"
+      password: "{{ v2v_destination_provider.password }}"
+      ca_file: "{{ v2v_destination_provider.ca_file | default(omit) }}"
+      insecure: "{{ v2v_destination_provider.ca_file is undefined }}"
+    tags:
+      - always
+
+  - name: Check if virtual machine exists
+    ovirt_vms_facts:
+      auth: "{{ ovirt_auth }}"
+      pattern: "name={{ vm_name }}"
+
+  - assert:
+      that:
+        - "ovirt_vms | length == 0"
+      msg: "Virtual machine '{{ vm_name }}' has not created on '{{ v2v_destination_provider.name }}'."
+
+  always:
+    - name: Logout from oVirt engine
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"
+      tags:
+        - always
+

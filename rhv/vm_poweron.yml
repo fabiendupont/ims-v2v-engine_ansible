@@ -1,0 +1,26 @@
+---
+- block:
+  - name: Login to oVirt engine
+    ovirt_auth:
+      url: "https://{{ v2v_destination_provider.hostname }}/ovirt-engine/api"
+      username: "{{ v2v_destination_provider.username }}"
+      password: "{{ v2v_destination_provider.password }}"
+      ca_file: "{{ v2v_destination_provider.ca_file | default(omit) }}"
+      insecure: "{{ v2v_destination_provider.ca_file is undefined }}"
+    tags:
+      - always
+
+  - name: Ensure virtual machine is running
+    ovirt_vms:
+      auth: "{{ ovirt_auth }}"
+      state: running
+      name: "{{ vm_name }}"
+
+  always:
+    - name: Logout from oVirt engine
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"
+      tags:
+        - always
+

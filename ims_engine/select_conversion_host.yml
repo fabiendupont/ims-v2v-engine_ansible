@@ -1,0 +1,3 @@
+---
+- set_fact:
+    v2v_selected_conversion_host: "rhelh08.v2v.bos.redhat.com"

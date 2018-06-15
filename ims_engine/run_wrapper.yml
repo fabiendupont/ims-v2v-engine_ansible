@@ -1,0 +1,36 @@
+---
+- name: Call virt-v2v-wrapper
+  command: /usr/bin/virt-v2v-wrapper.py
+  args:
+    stdin: "{{ v2v_virt_v2v_wrapper_input | to_json }}"
+  register: v2v_virt_v2v_wrapper_result
+
+ - debug:
+     var: v2v_virt_v2v_wrapper_result
+
+- set_fact:
+    v2v_virt_v2v_wrapper_output: "{{ v2v_virt_v2v_wrapper_result.stdout | from_json }}"
+  no_log: true
+
+- debug:
+    var: v2v_virt_v2v_wrapper_output
+
+- name: Identify the virt-v2v-wrapper state file
+  set_fact:
+    v2v_virt_v2v_wrapper_state_file: "{{ v2v_virt_v2v_wrapper_output.state_file }}"
+
+- debug:
+    var: v2v_virt_v2v_wrapper_state_file
+
+- name: Read virt-v2v-wrapper state file until finished
+  slurp:
+    src: "{{ v2v_virt_v2v_wrapper_state_file }}"
+  register: v2v_virt_v2v_wrapper_state
+  until: "(v2v_virt_v2v_wrapper_state.content | b64decode | from_json).finished | default(false)"
+  retries: "{{ v2v_virt_v2v_max_time // v2v_virt_v2v_refresh_delay }}"
+  delay: "{{ v2v_virt_v2v_refresh_delay }}"
+
+- assert:
+    that:
+      - "v2v_virt_v2v_wrapper_state.return_code == 0"
+    msg: "Something went wrong with virt-v2v."

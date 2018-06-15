@@ -1,0 +1,11 @@
+---
+- name: Collapse snapshots of the virtual machine
+  vmware_guest_snapshots:
+    hostname: "{{ v2v_source_provider.hostname }}"
+    username: "{{ v2v_source_provider.username }}"
+    password: "{{ v2v_source_provider.password }}"
+    validate_certs: "{{ v2v_source_provider.validate_certs | default(yes) }}"
+    datacenter: "{{ datacenter }}"
+    folder: "{{ folder }}"
+    name: "{{ vm_name }}"
+    state: "remove_all"
