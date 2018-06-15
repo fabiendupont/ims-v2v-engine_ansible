@@ -8,3 +8,9 @@ The default place to store the configuration is `./v2v_config` and this
 repository provides examples for each king of file.
 
 TODO: Describe the format of configuration files
+
+Usage:
+
+```
+ansible-playbook run_migration_plan.yml -e 'migration_plan=my_plan'
+```
