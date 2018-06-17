@@ -43,7 +43,7 @@
         v2v_destination_storage_name: "{{ v2v_im_storages[0].destination }}"
         v2v_network_mappings: "{{ v2v_im_networks }}"
 
-    - include_tasks: "ims_engine/select_conversion_host.yml"
+    - include_tasks: "v2v_engine/select_conversion_host.yml"
 
     - include_tasks: "{{ v2v_source_provider.type }}/vm_get_initial_state.yml"
 
@@ -88,13 +88,13 @@
 
     - block:
 
-      - include_tasks: "ims_engine/build_wrapper_input_{{ v2v_source_provider.type }}2{{ v2v_destination_provider.type }}.yml"
+      - include_tasks: "v2v_engine/build_wrapper_input_{{ v2v_source_provider.type }}2{{ v2v_destination_provider.type }}.yml"
 
       - fail:
           msg: "KABOOM!"
         when: true
 
-      - include_tasks: "ims_engine/run_wrapper.yml"
+      - include_tasks: "v2v_engine/run_wrapper.yml"
 
       - include_tasks: "{{ v2v_destination_provider.type }}/vm_check_exists.yml"
 
