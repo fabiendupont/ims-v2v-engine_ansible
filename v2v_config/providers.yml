@@ -9,5 +9,6 @@ v2v_providers:
   - name: "v2v_rhv"
     type: "rhv"
     hostname: "rhvm.example.com"
+    username: "admin@internal"
     password: "SecR3t!"
     validate_certs: false
