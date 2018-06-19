@@ -13,10 +13,19 @@ TODO: Describe the format of configuration files
 Dependencies
 ------------
 
-Some of the tasks require **Ansible 2.5.3+**.
+Some of the tasks require **Ansible 2.5.3+**. On Fedora 28, you can get it
+through `updates-testing` repo:
+
+```
+yum update ansible --enablerepo=updates-testing
+```
 
 You also need to install `pyvmomi` library as it is used by VMware modules.
-On Fedora 28, it's as easy as `yum install python2-pyvmomi`.
+On Fedora 28, it's as easy as:
+
+```
+yum install python2-pyvmomi
+```
 
 Usage
 -----
