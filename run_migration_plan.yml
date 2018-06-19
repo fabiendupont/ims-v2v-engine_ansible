@@ -132,7 +132,7 @@
           - v2v_post_migration_playbook_path is defined
           - v2v_source_vm_state.instance.hw_power_status == "poweredOn"
 
-      - include_tasks: "{{ v2v_source_provider.type }}/vm_set_migrated.yml"
+#      - include_tasks: "{{ v2v_source_provider.type }}/vm_set_migrated.yml"
 
       rescue:
 
