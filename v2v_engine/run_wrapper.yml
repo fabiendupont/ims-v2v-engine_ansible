@@ -5,8 +5,8 @@
     stdin: "{{ v2v_virt_v2v_wrapper_input | to_json }}"
   register: v2v_virt_v2v_wrapper_result
 
- - debug:
-     var: v2v_virt_v2v_wrapper_result
+- debug:
+    var: v2v_virt_v2v_wrapper_result
 
 - set_fact:
     v2v_virt_v2v_wrapper_output: "{{ v2v_virt_v2v_wrapper_result.stdout | from_json }}"
@@ -32,5 +32,5 @@
 
 - assert:
     that:
-      - "v2v_virt_v2v_wrapper_state.return_code == 0"
+      - "((v2v_virt_v2v_wrapper_state.content | b64decode | from_json).return_code) == 0"
     msg: "Something went wrong with virt-v2v."

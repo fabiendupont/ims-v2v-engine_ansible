@@ -1,5 +1,5 @@
 ---
-- name: Dynamically build the group of VMs to be migrated
+- name: Dynamically build the group of VMs to be migrated from migration plan
   hosts: localhost
   connection: local
   gather_facts: no
@@ -90,9 +90,9 @@
 
       - include_tasks: "v2v_engine/build_wrapper_input_{{ v2v_source_provider.type }}2{{ v2v_destination_provider.type }}.yml"
 
-      - fail:
-          msg: "KABOOM!"
-        when: true
+#      - fail:
+#          msg: "KABOOM!"
+#        when: true
 
       - include_tasks: "v2v_engine/run_wrapper.yml"
 
