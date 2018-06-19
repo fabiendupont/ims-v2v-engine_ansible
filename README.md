@@ -10,6 +10,14 @@ repository provides examples for each king of file.
 
 TODO: Describe the format of configuration files
 
+Dependencies
+------------
+
+Some of the tasks require **Ansible 2.5.3+**.
+
+You also need to install `pyvmomi` library as it is used by VMware modules.
+On Fedora 28, it's as easy as `yum install python2-pyvmomi`.
+
 Usage
 -----
 

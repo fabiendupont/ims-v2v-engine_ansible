@@ -77,7 +77,7 @@
         - v2v_source_vm_state.instance.hw_power_status == "poweredOn"
 
     - block:
-      - include_tasks: "{{ v2v_source_provider.type }}/vm_poweroff.yml"
+      - include_tasks: "{{ v2v_source_provider.type }}/vm_power_off.yml"
         when: v2v_source_vm_state.instance.hw_power_status == "poweredOn"
 
       - include_tasks: "{{ v2v_source_provider.type }}/vm_collapse_snapshots.yml"
@@ -100,7 +100,7 @@
 
       - include_tasks: "{{ v2v_destination_provider.type }}/vm_set_description.yml"
 
-      - include_tasks: "{{ v2v_destination_provider.type }}/vm_poweron.yml"
+      - include_tasks: "{{ v2v_destination_provider.type }}/vm_power_on.yml"
         when: v2v_source_vm_state.instance.hw_power_status == "poweredOn"
 
       - name: Run post-migration playbook

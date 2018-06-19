@@ -13,12 +13,15 @@
   - name: Check if virtual machine exists
     ovirt_vms_facts:
       auth: "{{ ovirt_auth }}"
-      pattern: "name={{ vm_name }}"
+      pattern: "name=test_migration"
 
   - assert:
       that:
-        - "ovirt_vms | length == 0"
-      msg: "Virtual machine '{{ vm_name }}' has not created on '{{ v2v_destination_provider.name }}'."
+        - "ovirt_vms | length == 1"
+      msg: "Virtual machine '{{ vm_name }}' doesn't exist or is not unique in '{{ v2v_destination_provider.name }}'."
+
+  - set_fact:
+      destination_vm_id: "{{ ovirt_vms[0].id }}"
 
   always:
     - name: Logout from oVirt engine
