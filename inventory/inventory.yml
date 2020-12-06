@@ -1,0 +1,25 @@
+---
+all:
+  vars:
+    install_drivers: true
+    destination_provider_insecure_connection: true
+  children:
+    conversion_hosts:
+      hosts:
+        rhelh01.example.com:
+        rhelh02.example.com:
+      vars:
+        ansible_user: "root"
+    virtual_machines:
+      hosts:
+        my-linux:
+          ansible_root: "root"
+        my-windows:
+          ansible_user: "Administrator"
+    virtual_machines_windows:
+      hosts:
+        my-windows:
+      vars:
+        ansible_connection: winrm
+        ansible_winrm_transport: basic
+        ansible_winrm_server_cert_validation: ignore

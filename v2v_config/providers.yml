@@ -4,11 +4,23 @@ v2v_providers:
     type: "vmware"
     hostname: "vcenter.example.com"
     username: "administrator@vsphere.local"
-    password: "SecR3t!"
+    thumbprint: "01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67"
     validate_certs: false
+    esx_hosts:
+      esx01:
+        hostname: "esx01.example.com"
+        ip_address: "192.168.1.21"
+        username: "administrator@vsphere.local"
+        thumbprint: "01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67"
+        validate_certs: false
+      esx02:
+        hostname: "esx01.example.com"
+        ip_address: "192.168.1.21"
+        username: "administrator@vsphere.local"
+        thumbprint: "01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67"
+        validate_certs: false
   - name: "v2v_rhv"
     type: "rhv"
     hostname: "rhvm.example.com"
     username: "admin@internal"
-    password: "SecR3t!"
     validate_certs: false

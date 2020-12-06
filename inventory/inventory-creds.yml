@@ -1,0 +1,15 @@
+---
+all:
+  children:
+    conversion_hosts:
+      hosts:
+        rhelh01.example.com:
+          ansible_password: "secret"
+        rhelh02.example.com:
+          ansible_password: "secret"
+    virtual_machines:
+      hosts:
+        my-linux:
+          ansible_password: "secret"
+        my-windows:
+          ansible_password: "secret"

@@ -1,14 +1,16 @@
 ---
 v2v_im_providers:
-  - source: "old_vmware"
-    destination: "new_rhv"
+  - source: "v2v_vmware"
+    destination: "v2v_rhv"
 v2v_im_clusters:
-  - source: "old_cluster"
-    destination: "new_cluster"
+  - source: "v2v_vmware_cluster"
+    destination: "v2v_rhv_cluster"
 v2v_im_networks:
-  - source: "old_network"
-    destination: "new_network"
+  - source: "VM Network"
+    destination: "ovirtmgmt"
 v2v_im_storages:
-  - source: "old_datastore"
-    destination: "new_datastore"
+  - source: "esx01_datastore"
+    destination: "sd_nfs_001"
+  - source: "esx02_datastore"
+    destination: "sd_iscsi_001"
 v2v_im_transport_method: "vddk"

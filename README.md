@@ -13,25 +13,30 @@ TODO: Describe the format of configuration files
 Dependencies
 ------------
 
-Some of the tasks require **Ansible 2.5.3+**. On Fedora 28, you can get it
-through `updates-testing` repo:
+This engine has been tested with **Ansible 2.9**. On Red Hat Enterprise Linux 8,
+we can install it with the following commands:
 
 ```
-yum update ansible --enablerepo=updates-testing
+$ sudo subscription-manager repos --enable=ansible-2.9-for-rhel-8-x86_64-rpms
+$ sudo dnf install ansible
 ```
 
-You also need to install `pyvmomi` library as it is used by VMware modules.
-On Fedora 28, it's as easy as:
+We also need to install `pyvmomi` library as it is used by VMware modules.
+On Red Hat Enterprise Linux 8, it is provided by the Advanced Virtualization
+repository. We can install it with the following commands:
 
 ```
-yum install python2-pyvmomi
+$ sudo subscription-manager repos --enable=advanced-virt-for-rhel-8-x86_64-rpms
+$ sudo dnf module reset virt
+$ sudo dnf module enable virt:8.3
+$ sudo dnf install python3-pyvmomi
 ```
 
 Usage
 -----
 
 ```
-ansible-playbook run_migration_plan.yml -e 'migration_plan=my_plan'
+ansible-playbook run_migration_plan.yml -i inventory -e 'migration_plan=my_plan'
 ```
 
 Variables

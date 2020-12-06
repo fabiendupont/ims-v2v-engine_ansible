@@ -19,14 +19,19 @@
   hosts: v2v_to_be_migrated
   gather_facts: no
   tasks:
+    - include_tasks: "{{ v2v_source_provider.type }}/vm_get_initial_state.yml"
+
     - name: Import the migration plan vars
       include_vars: "{{ v2v_config_path | default('./v2v_config') }}/migration_plans/{{ v2v_migration_plan }}.yml"
 
     - name: Import the infrastructure mapping vars
       include_vars: "{{ v2v_config_path | default('./v2v_config') }}/infrastructure_mappings/{{ v2v_infrastructure_mapping }}.yml"
 
-    - name: Import the providers credentials vars
+    - name: Import the providers vars
       include_vars: "{{ v2v_config_path | default('./v2v_config') }}/providers.yml"
+
+    - name: Import the providers credentials
+      include_vars: "{{ v2v_config_path | default('./v2v_config') }}/providers-creds.yml"
 
     - name: Identify destination provider from infrastructure mapping
       set_fact:
@@ -44,8 +49,6 @@
         v2v_network_mappings: "{{ v2v_im_networks }}"
 
     - include_tasks: "v2v_engine/select_conversion_host.yml"
-
-    - include_tasks: "{{ v2v_source_provider.type }}/vm_get_initial_state.yml"
 
     - name: Run pre-migration playbook
       ansible_playbook:
@@ -90,9 +93,9 @@
 
       - include_tasks: "v2v_engine/build_wrapper_input_{{ v2v_source_provider.type }}2{{ v2v_destination_provider.type }}.yml"
 
-#      - fail:
-#          msg: "KABOOM!"
-#        when: true
+      - fail:
+          msg: "KABOOM!"
+        when: true
 
       - include_tasks: "v2v_engine/run_wrapper.yml"
 
